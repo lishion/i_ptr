@@ -15,18 +15,17 @@ class i_ptr {
 public:
 
     i_ptr(T *p):ptr(p){ refCount = new int(1); };
-    i_ptr(){refCount = nullptr;ptr = nullptr;};
+    i_ptr(){ refCount = new int(1);ptr = nullptr; };
     void setPtr(const i_ptr &_ptr)
     {
 
             ptr = _ptr.ptr;
             refCount = _ptr.refCount;
             (*refCount) ++;
-            cout<<"reference :"<< *refCount <<endl;
-
+            cout<<"value: "<< ( ptr== nullptr ?"nullptr":(*ptr) ) <<"---reference :"<< *refCount<<endl;
     }
 
-    i_ptr(const i_ptr &_ptr)
+    i_ptr(const i_ptr &_ptr)//拷贝构造函数
     {
          if(ptr != _ptr.ptr)
          {
@@ -34,15 +33,25 @@ public:
          }
 
     }
-    void operator=(const i_ptr &_ptr)
+
+    void operator=(const i_ptr &_ptr)//赋值运算符
     {
-        if(ptr != _ptr.ptr )
+        if( ptr != _ptr.ptr )
         {
-            delete  ptr;
-            delete refCount;
+            if( (*refCount) ==  1 )//如果当前引用只有一个对象 则释放该对象申请的内存
+            {
+                delete refCount;
+                delete ptr;
+            }
+            else
+            {
+                (*refCount)--;//如果存在多个对象 则将对象引用计数减1
+
+            }
             setPtr(_ptr);
         }
     }
+
     T* operator->()
     {
         if(ptr == nullptr){cout<<ERROR_INFO<<endl;exit(1);};
@@ -61,11 +70,13 @@ public:
     }
     ~i_ptr()
     {
-        ( *refCount )--;
-        cout<<"reference :"<< *refCount <<endl;
+        ( *refCount )-- ;
+        cout<<"value: "<< ( ptr== nullptr ?"nullptr":(*ptr) ) <<"---reference :"<< *refCount<<endl;
         if( *refCount == 0)
         {
             delete ptr;
+            delete refCount;
+            refCount = nullptr;
             ptr = nullptr;
             cout<<"all reference have been deleted!"<<endl;
         }
